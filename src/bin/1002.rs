@@ -50,51 +50,48 @@ fn solve(input: &mut Read, output: &mut Write) {
         reader.read_line(&mut line).expect("number of words");
         let num_words = line.trim().parse::<usize>().unwrap();
         let mut words: Vec<String> = Vec::new();
-        let mut s: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
+        let mut sc: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
+        let mut flag: Vec<bool> = vec![false; number.len()+1];
         let mut solved = false;
         for _ in 0..num_words {
             line.clear();
             reader.read_line(&mut line).expect("word");
             let word = line.trim();
             let l = word.len();
-            println!("{} {}", word, transcript(word));
-            if l <= number.len() {//&& number.contains(&transcript(word)) { Wrong answer
+            if l <= number.len() && number.contains(&transcript(word)) {
                 if number.starts_with(&transcript(word)) {
                     if l == number.len() {
                         writeln!(output, "{}", word).expect("output");
                         solved = true;
                         break;
                     }
-                    s.entry(l).or_insert(vec!(words.len()));
+                    sc.entry(l).or_insert(vec!(words.len()));
+                    flag[l] = true;
                 }
                 words.push(word.to_string());
             }
         }
-        for (l, i) in s.clone() {
-            println!("{} {}", l, words[i[0]]);
-        }
 
         let mut least_number: usize = 1;
-        let mut sc: Vec<usize> = s.keys().cloned().collect();
 
         'outer: while !solved && !sc.is_empty() {
-            let mut st: Vec<usize> = Vec::new();
+            let mut st: BTreeMap<usize, Vec<usize>> = BTreeMap::new();
 
-            for l in sc {
+            for &l in sc.keys() {
                 let slice = &number[l..];
                 for i in 0..words.len() {
                     let ref word = words[i];
                     let next_len = l + word.len();
-                    if next_len <= number.len() && !s.contains_key(&next_len) && slice.starts_with(&transcript(&word)) {
-                        let mut t = s.get(&l).unwrap().clone();
+                    if next_len <= number.len() && !flag[next_len] && slice.starts_with(&transcript(&word)) {
+                        let mut t = sc.get(&l).unwrap().clone();
                         t.push(i);
                         if next_len == number.len() {
                             writeln!(output, "{}", t.iter().fold(String::new(), |state, &j| state + " " + &words[j]).trim()).expect("output");
                             solved = true;
                             break 'outer;
                         }
-                        st.push(next_len);
-                        s.insert(next_len, t);
+                        flag[next_len] = true;
+                        st.entry(next_len).or_insert(t);
                     }
                 }
             }
@@ -126,9 +123,6 @@ mod tests {
         solve(&mut f, &mut buf);
 
         let res = String::from_utf8(buf).expect("valid string");
-        assert_eq!(res,
-                   "reality our
-No solution.
-");
+        assert_eq!(res, "reality our\nNo solution.\n");
     }
 }

@@ -34,11 +34,6 @@ mod tests {
         solve(&mut f, &mut buf);
 
         let res = String::from_utf8(buf).expect("valid string");
-        assert_eq!(res,
-                   "2297.0716
-936297014.1164
-0.0000
-37.7757
-");
+        assert_eq!(res, "2297.0716\n936297014.1164\n0.0000\n37.7757\n");
     }
 }
